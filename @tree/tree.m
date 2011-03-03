@@ -11,6 +11,7 @@ classdef tree < handle
         n_scenarios
         n_nodes
         node_values
+        p % probabilities (size n_scenarios, not n_nodes)
     end
     
     methods
@@ -134,7 +135,7 @@ classdef tree < handle
         end
        
         function scenlist = tree2scen(obj)
-            ns = obj.n_stages
+            ns = obj.n_stages;
             scenlist = zeros(ns, obj.n_scenarios);
             
             node_idx = 1;
@@ -152,6 +153,118 @@ classdef tree < handle
         function plot_tree(obj)
             scenlist = obj.tree2scen();
             plot(scenlist);            
+        end
+        
+        function Dk = kantorovich(obj, xi, p, norm_type)
+        % computes the Kantorovich Distance between the tree and
+        % the discrete stochastic process represented by the set of
+        % scenarios xi.
+        % usage : Dk = kantorovich(obj, xi, p, norm_type))
+        % 
+        % it is assumed that the stochastic process is given as
+        % stages x scenarios. If the number of stages does not
+        % match, the function will transpose xi.
+            c = obj.distancematrix(xi, norm_type);
+            
+            % construct constraint matrix
+            [ni,nj] = size(c);
+            nvar = ni*nj;
+            nnz = nvar*2;
+            irow = zeros(nnz,1);
+            jcol = zeros(nnz,1);
+            values = ones(nnz,1);
+            
+            nnzidx = 1;
+            rowidx = 1;
+            for jj=1:nj
+                for ii=1:ni
+                    irow(nnzidx) = rowidx;
+                    jcol(nnzidx) = ni*(jj-1)+ii;
+                    nnzidx = nnzidx + 1;
+                end
+                rowidx = rowidx+1;
+            end
+            
+            for ii=1:ni
+                for jj=1:nj
+                    irow(nnzidx) = rowidx;
+                    jcol(nnzidx) = ni*(jj-1)+ii;
+                    nnzidx = nnzidx + 1;
+                end
+                rowidx = rowidx+1;
+            end
+            
+            A = sparse(irow, jcol, values);
+            b = zeros(ni+nj,1);
+            b(1:nj) = obj.p(:);
+            b(nj+1:end) = p(:);
+            assert(size(A,1)==length(b));
+            
+            [x, z, status] = clp([], c(:), [], [], A, b, zeros(nvar,1), ...
+                                 ones(nvar,1));
+            
+            if status~=0
+                disp(['CLP failed to solve Kantorovich min-cost-flow ' ...
+                      'problem!']);
+                Dk = inf;
+            end
+            Dk = x'*c(:);
+        end
+                
+        function diff = compute_optimal_weights(obj, xi, p, norm_type)
+        % Computes and updates the current tree's scenario weights
+        % by optimizing them against the scenarios  of xi.
+        % Th function returns the Kantorovich Distance, which is
+        % computed automatically in the procedure.
+            c = obj.distancematrix(xi, norm_type); 
+            
+            [minval, minidx] = min(c, [], 2);
+            obj.p = zeros(obj.n_scenarios, 1);
+            for kk=1:length(minval)
+                obj.p(minidx(kk)) = obj.p(minidx(kk)) + p(kk);
+            end
+            diff = sum(p.*minval);
+        end
+        
+        function c = distancematrix(obj, xi, norm_type)
+        % Returns the distance matrix between the scenarios xi and
+        % the current tree nodes 
+        % Usage:
+        % c = distancematrix(obj, xi, norm_type)
+        % c has the format n_xiscen x n_treescen
+            xih = xi;
+            if obj.has_father
+                if (size(xi,1)~=obj.n_stages-1) && (size(xi,2)==obj.n_stages-1)
+                    xih = xi';
+                else
+                    disp(['Cannot compute distance: Scenarios are ' ...
+                          'not of the same number of stages as the tree.']);
+                    Dk = inf;
+                    return
+                end
+            else
+                if (size(xi,1)~=obj.n_stages) && (size(xi,2)==obj.n_stages)
+                    xih = xi';
+                else
+                    disp(['Cannot compute distance: Scenarios are ' ...
+                          'not of the same number of stages as the tree.']);
+                    Dk = inf;
+                    return
+                end
+            end
+            n_xiscen = size(xih,2);
+            n_stages = size(xih,1);
+            
+            treescen_withfirststage = obj.tree2scen();
+            treescen = treescen_withfirststage(2:end,:);
+            % set up lp for clp
+            % 1. compute distances 
+            c = zeros(n_xiscen, obj.n_scenarios);
+            for ii=1:n_xiscen
+                for jj=1:obj.n_scenarios
+                    c(ii,jj) = norm(xih(:,ii)-treescen(:,jj),norm_type); 
+                end
+            end
         end
     end
     

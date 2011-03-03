@@ -32,9 +32,19 @@ function tr = geneticDE(xi, p, n_children)
                          mutateDE(parents, options, nvars, FitnessFcn, state, thisScore, thisPopulation,I), ...
                          'PlotFcns', {@gaplotscores,@gaplotbestf},...
                          'PopulationType', 'Custom');
-    tr = ga(@(Z) geneticDEfitness(Z,c,p,n_children),n_var,[],[],[],[],[],[],[],options);
+    z = ga(@(Z) geneticDEfitness(Z,c,p,n_children),n_var,[],[],[],[],[],[],[],options);
 
-    
+    % create tree from integer solution
+    tr = tree(T+1, n_children, true);
+    nps = n_children;
+    idx = 1;
+    for t=1:T
+        tr.node_values(idx+1:idx+nps) = xi(z(idx:idx+nps-1),t);
+        idx = idx+nps;
+        nps = nps*n_children;
+    end
+
+    opt_diff = tr.compute_optimal_weights(xi, p, 1)
 end
 
 
@@ -63,11 +73,11 @@ function fval = geneticDEfitness(z, c, p, n_children)
         z_last_idx = z_first_idx+z_n-1;
         nps = nps/n_children;
     end
-    fval = p.*sum(min(cv,[],2));
+    fval = sum(p.*min(cv,[],2));
 end
 
 function created = createDE(GenomeLength, FitnessFcn, options, n_scenarios) 
-    npop = 1000;
+    npop = 100;
     created = ceil(rand(100,GenomeLength)*n_scenarios);
 end
 
@@ -78,7 +88,7 @@ function mutated = mutateDE(parents, options, nvars, FitnessFcn, ...
     
     mutprob = 0.5;
     mutated = zeros(nparents, nvars);
-    r = floor(rand(nparents, nvars)*(1+2*mutprob)- mutprob);
+    r = round(randn(nparents, nvars))*4;
     
     mutated = thisPopulation(parents,:) + r;
     mutated(mutated<1) = 1;
