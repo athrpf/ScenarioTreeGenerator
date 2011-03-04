@@ -16,7 +16,7 @@ if nargin>1
 end
 
 for scen = xi
-    disp('\addplot coordinates {')
+    disp('\addplot [color=black] coordinates {')
     for k=1:n_stages
         disp(['(',num2str(k),', ', num2str(scen(k)),')'])
     end
