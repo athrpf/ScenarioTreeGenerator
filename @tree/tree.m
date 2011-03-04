@@ -22,14 +22,14 @@ classdef tree < handle
             obj.n_nodes     = 0;
             if has_father
                 obj.n_nodes = (1-n_children^n_stages)/(1- ...
-                                                           n_children);
+                                                       n_children);
                 obj.n_scenarios = n_children^(n_stages-1);
             else
                 obj.n_nodes = -1 + (1-n_children^(n_stages+1))/(1- ...
                                                                 n_children);
                 obj.n_scenarios = n_children^n_stages;
             end
-             node_values = zeros(obj.n_nodes,1);
+            node_values = zeros(obj.n_nodes,1);
         end
         
         function set_node(obj, stage, scenario, value)
@@ -133,7 +133,7 @@ classdef tree < handle
                 fnts = (1-nc^(stage))/(1-nc);
             end
         end
-       
+        
         function scenlist = tree2scen(obj)
             ns = obj.n_stages;
             scenlist = zeros(ns, obj.n_scenarios);
@@ -210,7 +210,7 @@ classdef tree < handle
             end
             Dk = x'*c(:);
         end
-                
+        
         function diff = compute_optimal_weights(obj, xi, p, norm_type)
         % Computes and updates the current tree's scenario weights
         % by optimizing them against the scenarios  of xi.
@@ -232,9 +232,11 @@ classdef tree < handle
         % Usage:
         % c = distancematrix(obj, xi, norm_type)
         % c has the format n_xiscen x n_treescen
-            xih = xi;
+            xih = 0;
             if obj.has_father
-                if (size(xi,1)~=obj.n_stages-1) && (size(xi,2)==obj.n_stages-1)
+                if (size(xi,1)==obj.n_stages-1)
+                    xih = xi;
+                elseif (size(xi,1)~=obj.n_stages-1) && (size(xi,2)==obj.n_stages-1)
                     xih = xi';
                 else
                     disp(['Cannot compute distance: Scenarios are ' ...
@@ -243,7 +245,9 @@ classdef tree < handle
                     return
                 end
             else
-                if (size(xi,1)~=obj.n_stages) && (size(xi,2)==obj.n_stages)
+                if (size(xi,1)==obj.n_stages-1)
+                    xih = xi;
+                elseif (size(xi,1)~=obj.n_stages) && (size(xi,2)==obj.n_stages)
                     xih = xi';
                 else
                     disp(['Cannot compute distance: Scenarios are ' ...
