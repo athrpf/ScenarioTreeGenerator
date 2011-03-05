@@ -19,6 +19,7 @@ toc
 kantoro_genetic = tr_genetic.kantorovich(xi, p, 1);
 kantoro_milp = tr_milp.kantorovich(xi, p, 1);
 
+disp('done')
 figure;
 subplot(2,1,1);
 tr_genetic.plot_tree
