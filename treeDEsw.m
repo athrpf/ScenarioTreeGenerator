@@ -83,8 +83,13 @@ function [tr,node_ptrs] = treeDEsw(xi_in, p, n_children, norm_type)
         
         children = tr.children(node)
         selections = find(zopt>0.5);
-        %keyboard
-        for child_idx=1:n_children
+        if length(selections)<n_children
+            selections = [selections;selections(end)* ...
+                          ones(n_children-length(selections),1)];
+            %keyboard
+        end
+        
+        for child_idx=1:length(selections)
             indices_this_notation = find(etaopt(selections(child_idx),:)>0);
             node_ptrs{children(child_idx)} = node_ptrs{node}(indices_this_notation);
             eta_ptrs{children(child_idx)}  = etaopt(selections(child_idx),indices_this_notation);
