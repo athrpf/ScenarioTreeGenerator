@@ -1,6 +1,7 @@
 % Hans Pirnay
 % 2011-02-27
-
+% Class for handling tree structures with a fixed number of stages
+% and branches at each node.
 classdef tree < handle
     
     properties
