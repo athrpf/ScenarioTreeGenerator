@@ -5,6 +5,9 @@ function tr = geneticDE(xi, p, n_children)
 % genetic optimization
 % (the algorithm is only implemented for one dimensional
 % stochastic processes)
+% USAGE:
+% tr = geneticDE(xi, p, n_children)
+% xi : n_scen x n_stages
 
 % compute the distance vector c_ijtd
 
