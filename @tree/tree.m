@@ -207,7 +207,9 @@ classdef tree < handle
             if status~=0
                 disp(['CLP failed to solve Kantorovich min-cost-flow ' ...
                       'problem!']);
+                disp(['status = ',num2str(status)])
                 Dk = inf;
+                return
             end
             Dk = x'*c(:);
         end
@@ -225,6 +227,7 @@ classdef tree < handle
                 obj.p(minidx(kk)) = obj.p(minidx(kk)) + p(kk);
             end
             diff = sum(p.*minval);
+            assert(abs(sum(obj.p)-1)<100*eps)
         end
         
         function c = distancematrix(obj, xi, norm_type)
