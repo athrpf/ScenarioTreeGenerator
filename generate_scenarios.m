@@ -10,6 +10,12 @@ function [xi, p] = generate_scenarios(n_scen, n_stages, distribution, ...
 % p  : probability of each scenario (nscen,1)
 % distribution is a string
 % varargin captures all information necessary for the distribution.
+% 
+% Values for distribution, ...
+% 'lognormal', init_state, mu, sigma
+% 'normal_independent'
+% 'coin'
+% 
 
 
 switch distribution
@@ -27,6 +33,9 @@ switch distribution
     p = 1/n_scen*ones(n_scen,1);
   case 'normal_independent'
     xi = randn(n_scen, n_stages);
+    p = 1/n_scen*ones(n_scen,1);
+  case 'coin'
+    xi = randi([0 1], n_scen, n_stages);
     p = 1/n_scen*ones(n_scen,1);
   otherwise
     xi = [];
