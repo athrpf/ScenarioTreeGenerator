@@ -8,16 +8,23 @@ function diff = compareDEtrees(xi, p, n_children)
 % xi : scenarios representing the stochastic process. Format
 %      scenarios x stages
 
-tic
+t_genetic_start = tic;
 tr_genetic = geneticDE(xi, p, n_children);
-toc
+t_genetic_end = toc(t_genetic_start);
 
-tic
+t_milp_start = tic;
 tr_milp    = treeDEsw(xi, p,n_children, 1);
-toc
+t_milp_end = toc(t_milp_start);
+
+keyboard
+
+t_kmedoid_start = tic;
+tr_kmedoid = treeDEkmedoids(xi, p,n_children, 1);
+t_kmedoid_end = toc(t_kmedoid_start);
 
 kantoro_genetic = tr_genetic.kantorovich(xi, p, 1);
 kantoro_milp = tr_milp.kantorovich(xi, p, 1);
+kantoro_kmedoid = tr_kmedoid.kantorovich(xi, p, 1);
 
 disp('done')
 figure;
@@ -27,3 +34,5 @@ title(['Genetic algorithm. Error ',num2str(kantoro_genetic)])
 subplot(2,1,2);
 tr_milp.plot_tree
 title(['Stage-wise MILP algorithm. Error ',num2str(kantoro_milp)])
+
+keyboard
