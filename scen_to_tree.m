@@ -9,7 +9,7 @@ function tr = scen_to_tree(xi, p, nchildren, combo)
 [nscen, nstages] = size(xi);
 assert(length(p)==nscen);
 
-ntreescen = nstages^nchildren;
+ntreescen = nchildren^nstages;
 assert(nscen>=ntreescen);
 randomize = false;
 if nargin<4
